@@ -16,8 +16,17 @@
     <label for="age">Age</label>
     <input type="text" th:field="*{age}" id="age"/>
     <br/>
+    <br>
+    <label for="username">Username: </label>
+    <input type="text" th:field="*{username}" id="username">
+    <br>
+    <label for="password">Password: </label>
+    <input type="password" th:field="*{password}" id="password">
+    <br>
     <input type="submit" value="Add User"/>
 </form>
+<br>
+<div th:replace="logging_out_template :: logout"></div>
 
 </body>
 </html>

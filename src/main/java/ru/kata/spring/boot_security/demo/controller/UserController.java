@@ -1,22 +1,27 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
+import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
-import java.util.List;
+import java.security.Principal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class UserController {
 
     @Autowired
+    private RoleService roleService;
+
+    @Autowired
     private UserService userService;
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(value = "/admin")
     public String listUsers(Model model) {
         List<User> users = userService.listUsers();
@@ -24,21 +29,24 @@ public class UserController {
         return "users";
     }
 
-    @PreAuthorize("hasRole('ROLE_USER')")
-    @GetMapping("/user/{id}")
-    public String getUserById(@PathVariable("id") long id, Model model) {
-        model.addAttribute("user", userService.getUserById(id));
+    @GetMapping("/user")
+    public String getUserById(Principal principal, Model model) {
+        model.addAttribute("user", userService.getUserByUsername(principal.getName()));
         return "user";
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/admin/user/{id}")
+    public String getUserById(@PathVariable("id") long id, Model model) {
+        model.addAttribute("user", userService.getUserById(id));
+        return "oneUser";
+    }
+
     @GetMapping(value = "/admin/new")
     public String newPersonForm(Model model) {
         model.addAttribute("user", new User());
         return "addUser";
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
     public String addUser(@ModelAttribute("user") User user) {
         try {
@@ -49,25 +57,34 @@ public class UserController {
         return "redirect:/admin";
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/admin/{id}/edit")
+    @GetMapping("/admin/user/{id}/edit")
     public String editUserForm(@PathVariable("id") long id, Model model) {
-        model.addAttribute("user", userService.getUserById(id));
+        User user = userService.getUserById(id);
+        List<Role> allRoles = roleService.findAll();
+        Set<Role> set = user.getRoleSet();
+        List<Role> list = new ArrayList<>();
+        for (Role role : set) {
+            list.add(role);
+        }
+        model.addAttribute("user", user);
+        model.addAttribute("allRoles", allRoles);
+        model.addAttribute("userRoles", list);
         return "edit";
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PatchMapping("/user/{id}")
-    public String editUser(@ModelAttribute("user") User user) {
+    @PatchMapping("/admin/user/{id}")
+    public String editUser(@ModelAttribute("user") User user, @RequestParam("allRoles") String[] roles) {
         try {
-            userService.update(user);
+            Set<Role> roleSet = Arrays.stream(roles)
+                    .map(roleService::getRoleByName)
+                    .collect(Collectors.toSet());
+            userService.update(user, roleSet);
         } catch (Exception e) {
             //ignored
         }
         return "redirect:/admin";
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public String deleteUser(@PathVariable("id") long id) {
         userService.delete(userService.getUserById(id));

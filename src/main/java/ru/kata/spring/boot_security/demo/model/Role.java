@@ -19,7 +19,7 @@ public class Role implements GrantedAuthority {
 
     @ManyToMany(mappedBy = "roles")
     @Transient
-    private Set<User> userSet;
+    private Set<User> userSet = new HashSet<>();
 
     public long getId() {
         return id;

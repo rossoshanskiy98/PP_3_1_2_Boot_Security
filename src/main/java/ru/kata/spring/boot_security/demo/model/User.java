@@ -34,6 +34,8 @@ public class User implements UserDetails {
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roleSet;
 
     public User() {}
@@ -42,6 +44,12 @@ public class User implements UserDetails {
         this.firstName = firstName;
         this.lastName = lastName;
         this.age = age;
+    }
+
+    public User(String firstName, String lastName, int age, String username, String password) {
+        this(firstName, lastName, age);
+        this.username = username;
+        this.password = password;
     }
 
     public Set<Role> getRoleSet() {

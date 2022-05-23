@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>User List</h1>
-<a href="/new">Add User</a>
+<a href="/admin/new">Add User</a>
 <br/><br/>
 <div>
     <table border="1">
@@ -17,20 +17,24 @@
             <th>Age</th>
             <th></th>
             <th></th>
+            <th></th>
         </tr>
         <tr th:each ="user : ${users}">
             <td th:utext="${user.id}">...</td>
             <td th:utext="${user.firstName}">...</td>
             <td th:utext="${user.lastName}">...</td>
             <td th:utext="${user.age}">...</td>
-            <td><a th:href="@{/{id}/edit(id=${user.getId()})}">Edit</a></td>
+            <td><a th:href="@{/admin/user/{id}/edit(id=${user.getId()})}">Edit</a></td>
             <td>
                 <form th:method="DELETE" th:action="@{/{id}(id=${user.getId()})}">
                     <input type="submit" value="Delete"/>
                 </form>
             </td>
+            <td><a th:href="@{/admin/user/{id}(id=${user.getId()})}">Go to</a></td>
         </tr>
     </table>
 </div>
+<br>
+<div th:replace="logging_out_template :: logout"></div>
 </body>
 </html>
